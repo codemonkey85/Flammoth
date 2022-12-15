@@ -1,7 +1,16 @@
 ﻿@using System.Net.Http
 @using System.Net.Http.Json
+@using Blazored.LocalStorage
+@using Flammoth
+@using Flammoth.Rcl.Shared
+@using Mastonet
+@using Mastonet.Entities
+@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.JSInterop
-@using Flammoth
-@using Flammoth.Rcl.Shared
+
+@inject IJSRuntime JsRuntime
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject ILocalStorageService LocalStorageService

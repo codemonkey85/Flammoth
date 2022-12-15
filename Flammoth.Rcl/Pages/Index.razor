@@ -1,3 +1,78 @@
 ﻿@page "/"
 
-<h1>Hello, world!</h1>
+<PageTitle>@PageTitle</PageTitle>
+
+<h1>@PageTitle</h1>
+
+<EditForm Model="loginModel" OnValidSubmit="AuthenticateAsync">
+    <InputText @bind-Value="loginModel.Instance" />
+    <div>
+        <button type="submit" class="btn btn-primary">
+            Log In
+        </button>
+    </div>
+</EditForm>
+
+<EditForm Model="authModel" OnValidSubmit="AuthorizeAsync">
+    <InputText @bind-Value="authModel.AuthCode" />
+    <div>
+        <button type="submit" class="btn btn-primary">
+            Authorize
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    private const string PageTitle = "Flammoth";
+
+    private LoginModel loginModel { get; set; } = new();
+    private AuthModel authModel { get; set; } = new();
+
+    AuthenticationClient? authClient;
+    AppRegistration? appRegistration;
+    Auth? auth;
+    MastodonClient? client;
+
+    private async Task AuthenticateAsync()
+    {
+        if (loginModel is not { Instance.Length: > 0 }) return;
+
+        authClient = new AuthenticationClient(loginModel.Instance, HttpClient);
+        appRegistration = await authClient.CreateApp("Flammoth", Scope.Read | Scope.Write | Scope.Follow);
+        var url = authClient.OAuthUrl();
+        try
+        {
+            await JsRuntime.InvokeAsync<object>("open", url, "_blank");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
+    private async Task AuthorizeAsync()
+    {
+        if (authClient is null || appRegistration is null || authModel is not { AuthCode.Length: > 0 })
+        {
+            return;
+        }
+        auth = await authClient.ConnectWithCode(authModel.AuthCode);
+
+        if (auth is null)
+        {
+            return;
+        }
+
+        client = new MastodonClient("instance", auth.AccessToken, HttpClient);
+    }
+
+    private class LoginModel
+    {
+        public string? Instance { get; set; } = @"mastodon.social";
+    }
+
+    private class AuthModel
+    {
+        public string? AuthCode { get; set; }
+    }
+}
