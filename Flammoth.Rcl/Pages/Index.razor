@@ -25,8 +25,8 @@
 @code {
     private const string PageTitle = "Flammoth";
 
-    private LoginModel loginModel { get; set; } = new();
-    private AuthModel authModel { get; set; } = new();
+    private LoginModel loginModel { get; } = new() { Instance = @"mastodon.social" };
+    private AuthModel authModel { get; } = new();
 
     AuthenticationClient? authClient;
     AppRegistration? appRegistration;
@@ -64,15 +64,5 @@
         }
 
         client = new MastodonClient("instance", auth.AccessToken, HttpClient);
-    }
-
-    private class LoginModel
-    {
-        public string? Instance { get; set; } = @"mastodon.social";
-    }
-
-    private class AuthModel
-    {
-        public string? AuthCode { get; set; }
     }
 }
