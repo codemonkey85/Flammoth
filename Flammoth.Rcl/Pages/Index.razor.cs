@@ -5,6 +5,7 @@ public partial class Index
 {
     private const string PageTitle = "Flammoth";
     private const string AuthCodeKey = "authCode";
+    private const string InstanceKey = "instance";
 
     private LoginModel LoginModel { get; } = new() { Instance = @"mastodon.social" };
 
@@ -19,9 +20,12 @@ public partial class Index
 
     protected override async Task OnInitializedAsync()
     {
+        var instance = await LocalStorageService.GetItemAsStringAsync(InstanceKey);
         var authToken = await LocalStorageService.GetItemAsStringAsync(AuthCodeKey);
-        if (authToken is { Length: > 0 })
+
+        if (authToken is { Length: > 0 } && InstanceKey is { Length: > 0 })
         {
+            LoginModel.Instance = instance;
             AuthModel.AuthCode = authToken;
             await AuthorizeAsync();
         }
@@ -34,9 +38,12 @@ public partial class Index
             return;
         }
 
+        await LocalStorageService.SetItemAsStringAsync(InstanceKey, LoginModel.Instance);
+
         authClient = new AuthenticationClient(LoginModel.Instance, HttpClient);
-        appRegistration = await authClient.CreateApp("Flammoth", Scope.Read);
+        appRegistration ??= await authClient.CreateApp("Flammoth", Scope.Read);
         var url = authClient.OAuthUrl();
+
         try
         {
             await JsRuntime.InvokeAsync<object>("open", url, "_blank");
@@ -54,18 +61,23 @@ public partial class Index
             return;
         }
 
+        await LocalStorageService.SetItemAsStringAsync(AuthCodeKey, AuthModel.AuthCode);
+
         await AuthorizeAsync();
     }
 
     private async Task AuthorizeAsync()
     {
-        if (LoginModel is not { Instance.Length: > 0 } || authClient is null || AuthModel is not { AuthCode.Length: > 0 })
+        if (LoginModel is not { Instance.Length: > 0 } || AuthModel is not { AuthCode.Length: > 0 })
         {
             return;
         }
 
+        authClient ??= new AuthenticationClient(LoginModel.Instance, HttpClient);
+
         try
         {
+            appRegistration ??= await authClient.CreateApp("Flammoth", Scope.Read);
             auth = await authClient.ConnectWithCode(AuthModel.AuthCode);
             if (auth is null)
             {
