@@ -4,20 +4,30 @@
 
 <h1>@PageTitle</h1>
 
-<EditForm Model="LoginModel" OnValidSubmit="AuthenticateAsync">
-    <InputText @bind-Value="LoginModel.Instance" />
-    <div>
-        <button type="submit" class="btn btn-primary">
-            Log In
-        </button>
-    </div>
-</EditForm>
+@if (client is null)
+{
+    <EditForm Model="LoginModel" OnValidSubmit="AuthenticateAsync">
+        <InputText @bind-Value="LoginModel.Instance" />
+        <div>
+            <button type="submit" class="btn btn-primary">
+                Log In
+            </button>
+        </div>
+    </EditForm>
 
-<EditForm Model="AuthModel" OnValidSubmit="AuthorizeAsync">
-    <InputText @bind-Value="AuthModel.AuthCode" />
-    <div>
-        <button type="submit" class="btn btn-primary">
-            Authorize
-        </button>
-    </div>
-</EditForm>
+    <EditForm Model="AuthModel" OnValidSubmit="AuthorizeViaFormAsync">
+        <InputText @bind-Value="AuthModel.AuthCode" />
+        <div>
+            <button type="submit" class="btn btn-primary">
+                Authorize
+            </button>
+        </div>
+    </EditForm>
+}
+else if (HomeTimeline is not null)
+{
+    foreach (var status in HomeTimeline)
+    {
+        <span>@status.Content</span>
+    }
+}
