@@ -41,6 +41,7 @@ public partial class Index
     {
         await LocalStorageService.RemoveItemAsync(InstanceKey);
         await LocalStorageService.RemoveItemAsync(AccessTokenKey);
+        LoginModel.AuthCode = null;
         HomeTimeline = null;
         authClient = null;
         auth = null;
@@ -110,7 +111,27 @@ public partial class Index
             return;
         }
         IsLoading = true;
-        HomeTimeline = await client.GetPublicTimeline(options: new() { Limit = 10 });
+
+        try
+        {
+            HomeTimeline = await client.GetPublicTimeline(options: new() { Limit = 10 });
+        }
+        catch (ServerErrorException mastEx)
+        {
+            Console.WriteLine(mastEx);
+            if (mastEx.Message.Equals("The access token was revoked"))
+            {
+                await LogOut();
+            }
+            IsLoading = false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            IsLoading = false;
+            throw;
+        }
+
         IsLoading = false;
     }
 }
