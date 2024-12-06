@@ -1,24 +1,32 @@
 ﻿@page "/"
 
-<PageTitle>@PageTitle</PageTitle>
+<PageTitle>@AppName</PageTitle>
 
-<h1>@PageTitle</h1>
+<h1>@AppName</h1>
 
-@if (client is null)
+@if (IsLoading)
 {
-    <EditForm Model="LoginModel" OnValidSubmit="AuthenticateAsync">
+    <span>Loading...</span>
+}
+else if (client is null)
+{
+    <EditForm Model="LoginModel"
+              OnValidSubmit="LogInToMastodon">
         <InputText @bind-Value="LoginModel.Instance" />
         <div>
-            <button type="submit" class="btn btn-primary">
+            <button type="submit"
+                    class="btn btn-primary">
                 Log In
             </button>
         </div>
     </EditForm>
 
-    <EditForm Model="AuthModel" OnValidSubmit="AuthorizeViaFormAsync">
-        <InputText @bind-Value="AuthModel.AuthCode" />
+    <EditForm Model="LoginModel"
+              OnValidSubmit="AuthorizeWithAuthCode">
+        <InputText @bind-Value="LoginModel.AuthCode" />
         <div>
-            <button type="submit" class="btn btn-primary">
+            <button type="submit"
+                    class="btn btn-primary">
                 Authorize
             </button>
         </div>
@@ -26,6 +34,12 @@
 }
 else if (HomeTimeline is not null)
 {
+    <button type="button"
+            class="btn btn-danger"
+            @onclick="@LogOut">
+        Log Out
+    </button>
+
     foreach (var status in HomeTimeline)
     {
         <p>@status.Content</p>
