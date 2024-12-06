@@ -40,7 +40,7 @@ public partial class Index
 
         await LocalStorageService.SetItemAsStringAsync(InstanceKey, LoginModel.Instance);
 
-        authClient = new AuthenticationClient(LoginModel.Instance, HttpClient);
+        authClient = new(LoginModel.Instance, HttpClient);
         appRegistration ??= await authClient.CreateApp("Flammoth", scope: GranularScope.Read);
         var url = authClient.OAuthUrl();
 
@@ -56,7 +56,7 @@ public partial class Index
 
     private async Task AuthorizeViaFormAsync()
     {
-        if (appRegistration is null)
+        if (appRegistration is null || AuthModel is not { AuthCode.Length: > 0 })
         {
             return;
         }
@@ -73,7 +73,7 @@ public partial class Index
             return;
         }
 
-        authClient ??= new AuthenticationClient(LoginModel.Instance, HttpClient);
+        authClient ??= new(LoginModel.Instance, HttpClient);
 
         try
         {
@@ -90,7 +90,7 @@ public partial class Index
             return;
         }
 
-        client = new MastodonClient(LoginModel.Instance, auth.AccessToken, HttpClient);
+        client = new(LoginModel.Instance, auth.AccessToken, HttpClient);
 
         await DoStuffWithClient();
     }
@@ -101,6 +101,6 @@ public partial class Index
         {
             return;
         }
-        HomeTimeline = await client.GetPublicTimeline(options: new ArrayOptions { Limit = 10 });
+        HomeTimeline = await client.GetPublicTimeline(options: new() { Limit = 10 });
     }
 }

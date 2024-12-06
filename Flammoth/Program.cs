@@ -4,6 +4,6 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services
     .AddBlazoredLocalStorage()
-    .AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+    .AddScoped(_ => new HttpClient { BaseAddress = new(builder.HostEnvironment.BaseAddress) });
 
 await builder.Build().RunAsync();
