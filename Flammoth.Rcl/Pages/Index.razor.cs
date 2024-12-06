@@ -4,8 +4,8 @@ namespace Flammoth.Rcl.Pages;
 public partial class Index
 {
     private const string PageTitle = "Flammoth";
-    private const string AuthCodeKey = "authCode";
     private const string InstanceKey = "instance";
+    private const string AccessToken = "accessToken";
 
     private LoginModel LoginModel { get; } = new() { Instance = @"mastodon.social" };
 
@@ -21,14 +21,16 @@ public partial class Index
     protected override async Task OnInitializedAsync()
     {
         var instance = await LocalStorageService.GetItemAsStringAsync(InstanceKey);
-        var authToken = await LocalStorageService.GetItemAsStringAsync(AuthCodeKey);
-
-        if (authToken is { Length: > 0 } && InstanceKey is { Length: > 0 })
+        var accessToken = await LocalStorageService.GetItemAsStringAsync(AccessToken);
+        if (instance is not
+            { Length: > 0 } || accessToken is not
+            { Length: > 0 })
         {
-            LoginModel.Instance = instance;
-            AuthModel.AuthCode = authToken;
-            await AuthorizeAsync();
+            return;
         }
+
+        client = new(instance, accessToken, HttpClient);
+        await DoStuffWithClient();
     }
 
     private async Task AuthenticateAsync()
@@ -61,8 +63,6 @@ public partial class Index
             return;
         }
 
-        await LocalStorageService.SetItemAsStringAsync(AuthCodeKey, AuthModel.AuthCode);
-
         await AuthorizeAsync();
     }
 
@@ -81,7 +81,7 @@ public partial class Index
             auth = await authClient.ConnectWithCode(AuthModel.AuthCode);
             if (auth is null)
             {
-                return;
+                throw new Exception("Failed to authenticate");
             }
         }
         catch (Exception ex)
@@ -90,6 +90,7 @@ public partial class Index
             return;
         }
 
+        await LocalStorageService.SetItemAsStringAsync(AccessToken, auth.AccessToken);
         client = new(LoginModel.Instance, auth.AccessToken, HttpClient);
 
         await DoStuffWithClient();
