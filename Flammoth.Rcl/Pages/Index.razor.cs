@@ -1,6 +1,7 @@
 namespace Flammoth.Rcl.Pages;
 
 // ReSharper disable once ClassNeverInstantiated.Global
+// ReSharper disable once UnusedType.Global
 public partial class Index
 {
     private const string AppName = "Flammoth";
@@ -15,11 +16,11 @@ public partial class Index
     private Auth? auth;
     private MastodonClient? client;
 
-    private bool IsLoading;
+    private bool isLoading;
 
     protected override async Task OnInitializedAsync()
     {
-        IsLoading = true;
+        isLoading = true;
 
         var instance = await LocalStorageService.GetItemAsStringAsync(InstanceKey);
         var accessToken = await LocalStorageService.GetItemAsStringAsync(AccessTokenKey);
@@ -27,14 +28,14 @@ public partial class Index
         if (instance is not { Length: > 0 } ||
             accessToken is not { Length: > 0 })
         {
-            IsLoading = false;
+            isLoading = false;
             return;
         }
 
         client = new(instance, accessToken, HttpClient);
         await DoStuffWithClient();
 
-        IsLoading = false;
+        isLoading = false;
     }
 
     private async Task LogOut()
@@ -80,7 +81,7 @@ public partial class Index
             throw new("Failed to authenticate");
         }
 
-        IsLoading = true;
+        isLoading = true;
 
         try
         {
@@ -89,12 +90,12 @@ public partial class Index
             {
                 throw new("Failed to authenticate");
             }
-            IsLoading = false;
+            isLoading = false;
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex);
-            IsLoading = false;
+            isLoading = false;
             throw;
         }
 
@@ -110,7 +111,7 @@ public partial class Index
         {
             return;
         }
-        IsLoading = true;
+        isLoading = true;
 
         try
         {
@@ -123,15 +124,15 @@ public partial class Index
             {
                 await LogOut();
             }
-            IsLoading = false;
+            isLoading = false;
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex);
-            IsLoading = false;
+            isLoading = false;
             throw;
         }
 
-        IsLoading = false;
+        isLoading = false;
     }
 }
